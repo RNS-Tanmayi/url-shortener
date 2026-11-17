@@ -25,3 +25,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+node_modules/
+.env
+.env.*
+backend/coverage/
+backend/coverage-results.txt
