@@ -1,0 +1,23 @@
+{
+  "name": "mern-url-shortener",
+  "version": "1.0.0",
+  "description": "A full-stack URL Shortener application that converts long URLs into short, shareable links. Users can generate unique short URLs, redirect to original destinations, track link clicks, and generate QR codes for shortened links.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RNS-Tanmayi/url-shortener.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RNS-Tanmayi/url-shortener/issues"
+  },
+  "homepage": "https://github.com/RNS-Tanmayi/url-shortener#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6"
+  }
+}

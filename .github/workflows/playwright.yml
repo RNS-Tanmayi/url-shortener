@@ -1,0 +1,90 @@
+
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start backend
+        working-directory: backend
+        env:
+          PORT: 5000
+          MONGO_URI: mongodb://127.0.0.1:27017/urlshortener
+          BASE_URL: http://localhost:5000
+          FRONTEND_URL: http://localhost:5173
+        run: |
+          nohup npm start > backend.log 2>&1 &
+          for i in {1..30}; do
+            if curl -s http://localhost:5000/ -o /dev/null; then
+              echo "Backend is running"
+              break
+            fi
+            sleep 2
+          done
+          curl -s http://localhost:5000/ -o /dev/null
+
+      - name: Start frontend
+        working-directory: frontend
+        env:
+          VITE_BACKEND_URL: http://localhost:5000
+        run: |
+          nohup npm run dev -- --host 0.0.0.0 > frontend.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://localhost:5173/ -o /dev/null; then
+              echo "Frontend is running"
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://localhost:5173/ -o /dev/null
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload Playwright HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
